@@ -1,0 +1,86 @@
+взяти "дід"
+
+js """
+var $__станція_слухати_хттп__;
+
+await ((async function() {
+  var { default: http } = await import("http");
+
+  $__станція_слухати_хттп__ = mavka_diia(
+    '__станція_слухати_хттп__',
+    {
+      'порт': mavka_param(0, 'порт', $число),
+      'слухач': mavka_param(1, 'слухач', $Дія),
+      'зворот': mavka_param(2, 'зворот', $Дія),
+    },
+    function(args, di) {
+      var port = mavka_arg(args, 0, 'порт', $число, undefined, di);
+      var listener = mavka_arg(args, 1, 'діа', $Дія, undefined, di);
+      var callback = mavka_arg(args, 2, 'зворот', $Дія, undefined, di);
+
+      var server = http.createServer(function(req, res) {
+        var chunks = [];
+        req.on('data', chunk => chunks.push(chunk));
+        req.on('end', async () => {
+          var body = Buffer.concat(chunks).toString('utf8');
+          var name = decodeURIComponent(req.url.split('/')[1]);
+
+          try {
+            var result = await mavka_call(listener, [name, body], di);
+            res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end(result);
+            return;
+          } catch (e) {
+            if (e) {
+              if (e instanceof MavkaError) {
+                res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end(String(e.value));
+                return;
+              }
+            }
+
+            throw e;
+          }
+        });
+      });
+
+      server.listen(port, "localhost", function() {
+        mavka_call(callback, [], di);
+      });
+    }
+  );
+})());
+"""
+макет дія __станція_слухати_хттп__(порт число, слухач Дія) ніщо
+
+структура Станція
+  дії словник = ()
+кінець
+
+дія Станція.додати(д Дія) ніщо
+  назва = Дія.назва(д)
+  якщо назва є пусто
+    впасти Помилка("Неможливо додати анонімну дію.")
+  кінець
+  я.дії[назва] = д
+кінець
+
+дія Станція.запустити(порт число = 8080, зворот Дія або пусто = пусто)
+  __станція_слухати_хттп__(
+    порт,
+    дія(назва, тіло)
+      якщо я.дії містить назва
+        вернути дід.зібрати(Дія.виконати(я.дії[назва], дід.розібрати(тіло)))
+      інакше
+        впасти Помилка("Не знайдено дію з назвою " + назва)
+      кінець
+    кінець,
+    дія()
+      якщо зворот
+        зворот()
+      кінець
+    кінець
+  )
+кінець
+
+дати Станція
