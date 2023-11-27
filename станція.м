@@ -6,6 +6,14 @@ var $__станція_слухати_хттп__;
 await ((async function() {
   var { default: http } = await import("http");
 
+  function paramsToObject(entries) {
+    const result = [];
+    for(const [key, value] of entries) {
+      result.push(key + '=' + '"' + value + '"')
+    }
+    return '(' + result.join(',') + ')';
+  }
+
   $__станція_слухати_хттп__ = mavka_diia(
     '__станція_слухати_хттп__',
     {
@@ -22,8 +30,18 @@ await ((async function() {
         var chunks = [];
         req.on('data', chunk => chunks.push(chunk));
         req.on('end', async () => {
-          var body = Buffer.concat(chunks).toString('utf8');
-          var name = decodeURIComponent(req.url.split('/')[1]);
+          var body = '';
+          if (req.method === 'GET') {
+            var query = req.url.split('?')[1];
+            if (query) {
+              var urlParams = new URLSearchParams(query);
+              body = paramsToObject(urlParams.entries());
+            }
+          } else {
+            body = Buffer.concat(chunks).toString('utf8');
+          }
+          var path = req.url.split('?')[0];
+          var name = decodeURIComponent(path.split('/')[1]);
 
           try {
             var result = await mavka_call(listener, [name, body], di);
